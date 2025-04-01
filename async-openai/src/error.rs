@@ -33,6 +33,7 @@ pub struct ApiError {
     pub message: String,
     pub r#type: Option<String>,
     pub param: Option<String>,
+    #[serde(deserialize_with = "serde_this_or_that::as_opt_string")]
     pub code: Option<String>,
 }
 

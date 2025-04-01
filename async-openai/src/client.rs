@@ -338,7 +338,10 @@ impl<C: Config> Client<C> {
 
             // Deserialize response body from either error object or actual response object
             if !status.is_success() {
-                let wrapped_error: WrappedError = serde_json::from_slice(bytes.as_ref())
+                let wrapped_error = serde_json::from_slice::<WrappedError>(bytes.as_ref())
+                    .or_else(|_|
+                        serde_json::from_slice::<Vec<WrappedError>>(bytes.as_ref()).map(|errors| errors.into_iter().next().unwrap())
+                    )
                     .map_err(|e| map_deserialization_error(e, bytes.as_ref()))
                     .map_err(backoff::Error::Permanent)?;
 
