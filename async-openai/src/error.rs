@@ -35,6 +35,7 @@ pub struct ApiError {
     pub param: Option<String>,
     #[serde(deserialize_with = "serde_this_or_that::as_opt_string")]
     pub code: Option<String>,
+    pub http_code: Option<u16>,
 }
 
 impl std::fmt::Display for ApiError {

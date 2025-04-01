@@ -8,7 +8,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     config::{Config, OpenAIConfig},
-    error::{map_deserialization_error, OpenAIError, WrappedError},
+    error::{map_deserialization_error, OpenAIError, WrappedError, ApiError},
     file::Files,
     image::Images,
     moderation::Moderations,
@@ -343,6 +343,17 @@ impl<C: Config> Client<C> {
                         serde_json::from_slice::<Vec<WrappedError>>(bytes.as_ref()).map(|errors| errors.into_iter().next().unwrap())
                     )
                     .map_err(|e| map_deserialization_error(e, bytes.as_ref()))
+                    .map(|e| {
+                        WrappedError {
+                            error: ApiError {
+                                message: e.error.message,
+                                r#type: e.error.r#type,
+                                param: e.error.param,
+                                code: e.error.code,
+                                http_code: Some(status.as_u16()),
+                            },
+                        }
+                    })
                     .map_err(backoff::Error::Permanent)?;
 
                 if status.as_u16() == 429
